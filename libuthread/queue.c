@@ -4,13 +4,33 @@
 
 #include "queue.h"
 
-struct queue {
-	/* TODO Phase 1 */
+//linked list 
+struct node{
+	struct node *next;
+	int data;
 };
 
-queue_t queue_create(void)
+struct queue {
+	/* TODO Phase 1 */
+	int size;
+	struct node *head;
+	struct node *tail;
+
+};
+
+queue_t queue_create(void) // the data type at the begining is the return type!!
 {
 	/* TODO Phase 1 */
+	queue_t theQueue = malloc(sizeof(struct queue));
+	if(theQueue == NULL){
+		return NULL;
+	}
+
+	theQueue->head = NULL;
+	theQueue->head = NULL;
+	theQueue->size = 0;
+
+	return theQueue;
 }
 
 int queue_destroy(queue_t queue)
@@ -18,17 +38,17 @@ int queue_destroy(queue_t queue)
 	/* TODO Phase 1 */
 }
 
-int queue_enqueue(queue_t queue, void *data)
+int queue_enqueue(queue_t queue, void *data) //add new data to the back of line 
 {
 	/* TODO Phase 1 */
 }
 
-int queue_dequeue(queue_t queue, void **data)
+int queue_dequeue(queue_t queue, void **data) // remove the data 
 {
 	/* TODO Phase 1 */
 }
 
-int queue_delete(queue_t queue, void *data)
+int queue_delete(queue_t queue, void *data) //remove an element 
 {
 	/* TODO Phase 1 */
 }
