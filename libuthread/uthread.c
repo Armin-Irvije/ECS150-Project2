@@ -10,6 +10,9 @@
 #include "uthread.h"
 #include "queue.h"
 
+//debug toggle 
+int DEBUG = 0;
+
 enum thread_states
 {
 	IDLE,
@@ -23,7 +26,7 @@ struct uthread_tcb
 {
 	/* TODO Phase 2 */
 	struct uthread_tcb *next;
-	uthread_func_t *function;
+	uthread_func_t function;
 	void *arg;
 	enum thread_states state; // running, ready, blocked?
 	void *stackPointer;
@@ -39,7 +42,7 @@ struct TCBLL // linked list of TCB
 };
 
 // Declare a global instance of TCB linked list
-struct TCBLL *theTCBLL = (struct TCBLL *)(sizeof(struct TCBLL)); // we might need to fix how we allocate linked list memory
+struct TCBLL *theTCBLL; // we might need to fix how we allocate linked list memory
 
 struct uthread_tcb *uthread_current(void)
 {
@@ -77,7 +80,7 @@ void uthread_exit(void)
 
 int uthread_create(uthread_func_t func, void *arg)
 {
-
+	if(DEBUG) printf("Inside uthread_create\n");
 	if (theTCBLL->size == 1) // if we only have the IDLE thread in our TCBLL
 	{						 // Create the initial thread
 
@@ -93,9 +96,9 @@ int uthread_create(uthread_func_t func, void *arg)
 		newTCB->state = RUNNING;
 		newTCB->function = func;
 		newTCB->arg = arg;
-		newTCB->stackPointer =
-			newTCB->programCounter =
-				newTCB->next = NULL;
+		newTCB->stackPointer = NULL;
+		newTCB->programCounter = NULL;
+		newTCB->next = NULL;
 
 		// set new TCB node as tail
 		if (theTCBLL->tail != NULL)
@@ -103,7 +106,8 @@ int uthread_create(uthread_func_t func, void *arg)
 			theTCBLL->tail->next = newTCB;
 			theTCBLL->tail = newTCB;
 		}
-
+		newTCB->function(newTCB->arg);
+		if(DEBUG) printf("created inital thread\n");
 		return 0; // edit
 	}
 	else
@@ -118,9 +122,9 @@ int uthread_create(uthread_func_t func, void *arg)
 		newTCB->state = READY;
 		newTCB->function = func;
 		newTCB->arg = arg;
-		newTCB->stackPointer =
-			newTCB->programCounter =
-				newTCB->next = NULL;
+		newTCB->stackPointer = NULL;
+		newTCB->programCounter = NULL;
+		newTCB->next = NULL;
 
 		if (theTCBLL->tail != NULL)
 		{
@@ -137,57 +141,62 @@ int uthread_create(uthread_func_t func, void *arg)
 }
 
 int uthread_run(bool preempt, uthread_func_t func, void *arg)
-{
+{	
+	if(DEBUG) printf("inside uthread_run!\n");
+
+	theTCBLL = malloc(sizeof(struct TCBLL));
 
 	if (theTCBLL == NULL) // if linked list memory allocation fails
 	{
 		return -1;
 	}
-
+	
 	theTCBLL->head = NULL; // initializing linked list head tail and size
 	theTCBLL->tail = NULL;
 	theTCBLL->size = 0;
+	if(DEBUG) printf("initialzied linked list!\n");
 
 	// registers the so-far single execution flow of the application as the idle thread that the library can later schedule for execution
-	struct uthread_tcb *newTCB = malloc(sizeof(struct uthread_tcb)); // creates the IDLE TCB and allocate the memory
+	struct uthread_tcb *idleTCB = malloc(sizeof(struct uthread_tcb)); // creates the IDLE TCB and allocate the memory
 
-	if (newTCB == NULL) // if IDLE TCB memory allocation fails
+	
+	if (idleTCB == NULL) // if IDLE TCB memory allocation fails
 	{
 		return -1;
 	}
-
+	
 	theTCBLL->size++; // increments the size of the TCBLL
 
-	newTCB->state = IDLE;		 // sets the state of IDLE thread to IDLE
-	newTCB->stackPointer =		 // context saved
-		newTCB->programCounter = // context saved
-		newTCB->next = NULL;
+	idleTCB->state = IDLE;		 // sets the state of IDLE thread to IDLE
+	idleTCB->stackPointer = NULL;	 // context saved
+	idleTCB->programCounter = NULL; // context saved
+	idleTCB->next = NULL;
 
-	theTCBLL->head = newTCB; // sets the head of the TCBLL to the IDLE thread
-	theTCBLL->tail = newTCB;
+	theTCBLL->head = idleTCB; // sets the head of the TCBLL to the IDLE thread
+	theTCBLL->tail = idleTCB;
+	if(DEBUG) printf("created idle thread\n");
 
+	
 	// create initial thread
 	uthread_create(func, arg); // taken from our uthread_run(arguments)
+	if(DEBUG) printf("Returned from uthread create\n");
 
-	struct uthread_tcb *currentTCB;
-	currentTCB = theTCBLL->head;
 
-	while (1) // infinite while loop that runs until there are no more threads ready to run in the system
+
+	struct uthread_tcb *current = malloc(sizeof(struct uthread_tcb));
+	current = uthread_current();
+	if(DEBUG) printf("stored current thread\n");
+
+	while (theTCBLL->size == 0) // infinite while loop that runs until there are no more threads ready to run in the system
 	{
-		while (theTCBLL != NULL)
-		{
-
-			if (currentTCB->state == ZOMBIE)
-			{
-				return currentTCB;
-			}
-			else
-			{
-				currentTCB = currentTCB->next;
-			}
+		struct uthread_tcb *current = uthread_current();
+		if(current->state == ZOMBIE){
+			//TODO: clean up resouces
+		}else{
+			uthread_yield();
 		}
 	}
-
+	//TODO: free up memory with linked list
 	return 0;
 }
 
