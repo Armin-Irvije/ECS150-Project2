@@ -14,8 +14,9 @@ enum thread_states
 {
 	IDLE,
 	RUNNING,
+	BLOCKED,
 	READY,
-	EXITED
+	ZOMBIE
 };
 
 struct uthread_tcb
@@ -38,7 +39,7 @@ struct TCBLL // linked list of TCB
 };
 
 // Declare a global instance of TCB linked list
-struct TCBLL *theTCBLL = (struct TCBLL *)(sizeof(struct TCBLL));
+struct TCBLL *theTCBLL = (struct TCBLL *)(sizeof(struct TCBLL)); // we might need to fix how we allocate linked list memory
 
 struct uthread_tcb *uthread_current(void)
 {
@@ -67,7 +68,6 @@ void uthread_yield(void)
 
 	runningTCB->state = READY;
 	runningTCB->next->state = RUNNING;
-	
 }
 
 void uthread_exit(void)
@@ -77,19 +77,22 @@ void uthread_exit(void)
 
 int uthread_create(uthread_func_t func, void *arg)
 {
-	// if not intial thread set state to ready
-	if (theTCBLL->size == 1)
-	{ // Create the initial thread
+
+	if (theTCBLL->size == 1) // if we only have the IDLE thread in our TCBLL
+	{						 // Create the initial thread
 
 		struct uthread_tcb *newTCB = malloc(sizeof(struct uthread_tcb)); // new tcb node
 
-		if (newTCB == NULL)
+		if (newTCB == NULL) // TCB node memory allocation fails
 		{
 			return -1;
 		}
 
+		// all of this is setting the characteristics of the TCBLL
 		theTCBLL->size++;
 		newTCB->state = RUNNING;
+		newTCB->function = func;
+		newTCB->arg = arg;
 		newTCB->stackPointer =
 			newTCB->programCounter =
 				newTCB->next = NULL;
@@ -100,18 +103,11 @@ int uthread_create(uthread_func_t func, void *arg)
 			theTCBLL->tail->next = newTCB;
 			theTCBLL->tail = newTCB;
 		}
-		else
-		{
-			// first node in the TCBLL
-			theTCBLL->head = newTCB;
-			theTCBLL->tail = newTCB;
-		}
 
 		return 0; // edit
 	}
-	// if not intial thread set state to ready
-	while (theTCBLL->size != theTCBLL->doneRunningCount + 1)
-	{
+	else
+	{ // Child TCB created by the initial TCB
 
 		struct uthread_tcb *newTCB = malloc(sizeof(struct uthread_tcb));
 		if (newTCB == NULL)
@@ -119,7 +115,9 @@ int uthread_create(uthread_func_t func, void *arg)
 
 		theTCBLL->size++;
 
-		newTCB->state = RUNNING;
+		newTCB->state = READY;
+		newTCB->function = func;
+		newTCB->arg = arg;
 		newTCB->stackPointer =
 			newTCB->programCounter =
 				newTCB->next = NULL;
@@ -136,71 +134,57 @@ int uthread_create(uthread_func_t func, void *arg)
 			theTCBLL->tail = newTCB;
 		}
 	}
-
-	return 0;
 }
 
 int uthread_run(bool preempt, uthread_func_t func, void *arg)
 {
 
-	if (theTCBLL == NULL)
+	if (theTCBLL == NULL) // if linked list memory allocation fails
 	{
 		return -1;
 	}
 
-	theTCBLL->head = NULL;
+	theTCBLL->head = NULL; // initializing linked list head tail and size
 	theTCBLL->tail = NULL;
 	theTCBLL->size = 0;
 
 	// registers the so-far single execution flow of the application as the idle thread that the library can later schedule for execution
-	struct uthread_tcb *newTCB;
+	struct uthread_tcb *newTCB = malloc(sizeof(struct uthread_tcb)); // creates the IDLE TCB and allocate the memory
 
-	if (newTCB == NULL)
+	if (newTCB == NULL) // if IDLE TCB memory allocation fails
 	{
 		return -1;
 	}
 
-	theTCBLL->size++;
+	theTCBLL->size++; // increments the size of the TCBLL
 
-	newTCB->state = IDLE;
-	newTCB->stackPointer =
-	newTCB->programCounter =
-	newTCB->next = NULL;
+	newTCB->state = IDLE;		 // sets the state of IDLE thread to IDLE
+	newTCB->stackPointer =		 // context saved
+		newTCB->programCounter = // context saved
+		newTCB->next = NULL;
 
-	theTCBLL->head = newTCB;
+	theTCBLL->head = newTCB; // sets the head of the TCBLL to the IDLE thread
 	theTCBLL->tail = newTCB;
 
 	// create initial thread
 	uthread_create(func, arg); // taken from our uthread_run(arguments)
 
-	// theTCBLL->size != theTCBLL->doneRunningCount + 1
+	struct uthread_tcb *currentTCB;
+	currentTCB = theTCBLL->head;
 
-	while (1)
-	{ // infinite while loop that runs until there are no more threads ready to run in the system
-
-		// struct uthread_tcb *newTCB = malloc(sizeof(struct uthread_tcb));
-		if (newTCB == NULL)
+	while (1) // infinite while loop that runs until there are no more threads ready to run in the system
+	{
+		while (theTCBLL != NULL)
 		{
-			return -1;
-		}
 
-		theTCBLL->size++;
-
-		newTCB->state = RUNNING;
-		newTCB->stackPointer =
-			newTCB->programCounter =
-				newTCB->next = NULL;
-
-		if (theTCBLL->tail != NULL)
-		{
-			theTCBLL->tail->next = newTCB;
-			theTCBLL->tail = newTCB;
-		}
-		else
-		{
-			// first node in the TCBLL
-			theTCBLL->head = newTCB;
-			theTCBLL->tail = newTCB;
+			if (currentTCB->state == ZOMBIE)
+			{
+				return currentTCB;
+			}
+			else
+			{
+				currentTCB = currentTCB->next;
+			}
 		}
 	}
 
