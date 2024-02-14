@@ -99,8 +99,7 @@ static void uthread_scheduler(void) {
 	if(DEBUG)printf("inside scheduler\n");
 	struct uthread_tcb *next_thread = NULL;
 	struct uthread_tcb *curr = uthread_current();
-
-	
+	if(DEBUG)printf("about to dequeue and set next thread\n");
     if (queue_dequeue(readyQ, (void **)&next_thread) != 0) return; // No thread to switch to
 	next_thread->state = RUNNING; 
 	if(DEBUG)printf("we dequeued ready thread, queue size: %d\n", queue_length(readyQ));
@@ -128,15 +127,22 @@ void uthread_exit(void)
 	struct uthread_tcb *current = uthread_current();
 	if(DEBUG)printf("found current inside exit\n");
 	if (current != NULL) {
-        uthread_ctx_destroy_stack(current->context.uc_stack.ss_sp);
-        free(current);
+		if(DEBUG)printf("about to destroy stack\n");
+        //uthread_ctx_destroy_stack(current->context.uc_stack.ss_sp);
+		if(DEBUG)printf("about to free exited threads\n");
+        //free(current);
         current = NULL;
     }
 	if(DEBUG)printf("about to dequeue in exit\n");
-	// struct uthread_tcb *nextRUNNING = NULL;
-	// queue_dequeue(readyQ, (void **)&nextRUNNING);
-	// if(queue_length(readyQ) == 1) nextRUNNING->state = RUNNING;
-	// uthread_scheduler();
+	struct uthread_tcb *nextRUNNING = NULL;
+	if(queue_dequeue(readyQ, (void **)&nextRUNNING) != 0) return;
+	nextRUNNING->state = RUNNING;
+
+	if(queue_length(readyQ) == 0){
+		if(DEBUG)printf("adding idle thread to queue\n");
+		queue_enqueue(readyQ,theTCBLL->head);
+	}
+	uthread_scheduler();
 }
 
 int uthread_create(uthread_func_t func, void *arg) //let create be a stand alone create function no if statements
@@ -184,8 +190,16 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	if(DEBUG)printf("initial thread created, list size: %d\n", theTCBLL->size);
 	initialTCB->function(initialTCB->arg);
 	//it makes sense to just run the initial thread because it set everything in motion
-	if(DEBUG)printf("list size: %d\n", theTCBLL->size);
-	
+	if(DEBUG)printf("back in idle thread queue size : %d\n", queue_length(readyQ));
+
+	// while(1){
+
+	// 	if(queue_length(readyQ) == 0){
+	// 		return 0;
+	// 	}else{
+	// 		uthread_yield();
+	// 	}
+	// }
 	
 }
 
