@@ -11,11 +11,10 @@
 #include "queue.h"
 
 //debug toggle 
-int DEBUG = 0;
+int DEBUG = 1;
 
 enum thread_states
 {
-	IDLE,
 	RUNNING,
 	BLOCKED,
 	READY,
@@ -29,6 +28,7 @@ struct uthread_tcb
 	enum thread_states state; // running, ready, blocked?
 	
 	uthread_func_t function;
+	int idle;
 	void *arg;
 	void *stackPointer;
 	uthread_ctx_t context;
@@ -70,7 +70,13 @@ void uthread_yield(void)
 {
 	struct uthread_tcb *runningTCB = uthread_current();
 	runningTCB->state = READY;
-	runningTCB->next->state = RUNNING;
+	if(runningTCB->next == NULL){
+		runningTCB = theTCBLL->head;
+		runningTCB->state = RUNNING;
+	}
+	else{
+		runningTCB->next->state = RUNNING;
+	}
 	if(DEBUG)printf("current thread yielded, states changed\n");
 }
 
@@ -100,6 +106,7 @@ int uthread_create(uthread_func_t func, void *arg)
 		initialTCB->function = func;
 		initialTCB->arg = arg;
 		initialTCB->next = NULL;
+		initialTCB->idle = 0;
 
 		// set new TCB node as tail
 		if (theTCBLL->tail != NULL)
@@ -126,6 +133,7 @@ int uthread_create(uthread_func_t func, void *arg)
 		newTCB->arg = arg;
 		newTCB->stackPointer = NULL;
 		newTCB->next = NULL;
+		newTCB->idle = 0;
 
 		if (theTCBLL->tail != NULL)
 		{
@@ -170,9 +178,10 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	
 	theTCBLL->size++; // increments the size of the TCBLL
 
-	idleTCB->state = IDLE;		 // sets the state of IDLE thread to IDLE
+	idleTCB->state = READY;		 // sets the state of IDLE thread to IDLE
 	idleTCB->stackPointer = NULL;	 // context saved
 	idleTCB->next = NULL;
+	idleTCB->idle = 1;
 
 	theTCBLL->head = idleTCB; // sets the head of the TCBLL to the IDLE thread
 	theTCBLL->tail = idleTCB;
@@ -186,22 +195,30 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 
 
 	struct uthread_tcb *current = malloc(sizeof(struct uthread_tcb));
+	struct uthread_tcb *theWhiletcb = theTCBLL->head;
 	current = uthread_current();
 	if(DEBUG) printf("stored current thread\n");
 	//I think we start executing in this while loop
 	while (theTCBLL->size > 0) // "infinite" loop runs as long as there are threads in the list
 	{
 		if(DEBUG) printf("inside while loop\n");
-		struct uthread_tcb *current = uthread_current();
-		if(current->state == ZOMBIE){
+		if(theWhiletcb == theTCBLL->tail){
+			theWhiletcb = theTCBLL->head;
+		}
+		else if(theWhiletcb->state == ZOMBIE){
 			//TODO: clean up resouces
+			free(theWhiletcb);
 			theTCBLL->size--;
 			
-		}else{
+		}else if(theWhiletcb->idle){
+			return 0;
+		}else if (theWhiletcb == current){
 			uthread_yield();
 		}
+		theWhiletcb = theWhiletcb->next;
+	
 	}
-	 
+	
 	free(current);
 	return 0;
 }
