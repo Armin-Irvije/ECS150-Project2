@@ -61,7 +61,12 @@ void add(struct uthread_tcb *new_tcb) {
 }
 
 static void uthread_loop(void) {
+	// while (1) {
+    //     if (queue_length(readyQ) == 0)
+    //         break;  // No more threads to run
 
+    //     uthread_scheduler();  // Yield to the next available thread
+    // }
     
 }
 
@@ -119,14 +124,19 @@ void uthread_yield(void)//this is fine cause threads will call yield themselves!
 void uthread_exit(void)
 {
 	/* TODO Phase 2 */
+	if(DEBUG)printf("inside exit\n");
 	struct uthread_tcb *current = uthread_current();
+	if(DEBUG)printf("found current inside exit\n");
 	if (current != NULL) {
         uthread_ctx_destroy_stack(current->context.uc_stack.ss_sp);
         free(current);
         current = NULL;
     }
-	//uthread_scheduler();
-
+	if(DEBUG)printf("about to dequeue in exit\n");
+	// struct uthread_tcb *nextRUNNING = NULL;
+	// queue_dequeue(readyQ, (void **)&nextRUNNING);
+	// if(queue_length(readyQ) == 1) nextRUNNING->state = RUNNING;
+	// uthread_scheduler();
 }
 
 int uthread_create(uthread_func_t func, void *arg) //let create be a stand alone create function no if statements
