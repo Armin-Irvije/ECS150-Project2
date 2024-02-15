@@ -111,19 +111,56 @@ void test_custom_data_types(void)
     queue_dequeue(q, (void**)&ptr);
     TEST_ASSERT(ptr->id == 3 && strcmp(ptr->name, "Charlie") == 0);
 }
+/* Test dequeue from an empty queue */
+void test_dequeue_empty(void)
+{
+    queue_t q;
+    int *ptr;
+
+    fprintf(stderr, "*** TEST dequeue_empty ***\n");
+
+    q = queue_create();
+
+    // Dequeue from an empty queue should return -1
+    TEST_ASSERT(queue_dequeue(q, (void**)&ptr) == -1);
+}
+
+/* Test enqueueing NULL pointers */
+void test_enqueue_null(void)
+{
+    queue_t q;
+
+    fprintf(stderr, "*** TEST enqueue_null ***\n");
+
+    q = queue_create();
+
+    // Enqueueing a NULL pointer should return -1
+    TEST_ASSERT(queue_enqueue(q, NULL) == -1);
+}
+
+/* Test dequeue from a NULL queue */
+void test_dequeue_null(void)
+{
+    int *ptr;
+
+    fprintf(stderr, "*** TEST dequeue_null ***\n");
+
+    // Dequeue from a NULL queue should return -1
+    TEST_ASSERT(queue_dequeue(NULL, (void**)&ptr) == -1);
+}
 
 
 int main(void)
 {
 	test_create();
-	test_queue_simple();
-
-	test_queue_multiple();
-	test_empty_queue(); //red alert does not work
+    test_queue_simple();
+    test_queue_multiple();
+    test_empty_queue();
+    test_custom_data_types();
+    test_dequeue_empty();
+    test_enqueue_null();
+    test_dequeue_null();
 	
-	test_custom_data_types();
-	//test_full_queue();
-
 	return 0;
 }
 
