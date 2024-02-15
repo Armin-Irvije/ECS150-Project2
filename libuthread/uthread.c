@@ -107,7 +107,7 @@ static void uthread_scheduler(void) {
 	curr->state = READY;
 	queue_enqueue(readyQ, curr); // Enqueue the current thread back into the ready queue
 	if(DEBUG)printf("put curr back into ready queue about to context switch, queue size: %d\n", queue_length(readyQ));
-	
+	//if()printf("found running thread return as current\n");
     uthread_ctx_switch(&(curr->context), &(next_thread->context));
 }
 
@@ -220,6 +220,7 @@ void uthread_unblock(struct uthread_tcb *uthread)
 	if(DEBUG)printf("inside uthread_Unblocked\n");
 	if (uthread != NULL) {
         uthread->state = READY;
+		if(DEBUG)printf("we set unblocked thread state to READY\n");
         queue_enqueue(readyQ, uthread);  // Enqueue to ready queue
 		if(DEBUG)printf("queued unblocked thread into ready\n");
     }

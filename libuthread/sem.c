@@ -43,20 +43,22 @@ int sem_down(sem_t sem) {
 	if(BUM)printf("inside sem_down\n");
 	struct uthread_tcb *runningThread = uthread_current();
     if (sem == NULL) return -1;
-	
-    if(sem->count == 0){//the is the gate at the door if we are 0
+
+    while(sem->count == 0){//the is the gate at the door if we are 0
 		if(BUM)printf("inside if about to block\n");
+		struct uthread_tcb *runningThread = uthread_current();
 		queue_enqueue(sem->waitingQ, runningThread);
 		if(BUM)printf("enqueued the running thread\n");
 		uthread_block(); //block current running thread
 	}
+	// if(sem->waitingQ == NULL){
+	// 	//enable_preemption()
+	// 	return -1;
+	// }
+	sem->count--;
+	if(BUM)printf("decresed sem count: %d\n", sem->count);
 
-	if(sem->count > 0){
-		sem->count--;
-		if(BUM)printf("decresed sem count: %d\n", sem->count);
-	} 
-	
-	
+
     return 0;
 }
 
@@ -66,12 +68,16 @@ int sem_up(sem_t sem) {
 	if(BUM)printf("inside sem_up\n");
 	struct uthread_tcb *unblockedThread = NULL;
     if (sem == NULL) return -1;
-	sem->count++; //count is confusing 
+	
+	sem->count++; 
 	if(BUM)printf("increased sem count: %d\n", sem->count);
-	if(sem->waitingQ != NULL){
+
+	if(sem->waitingQ != NULL && (sem->waitingQ != NULL)){ //NULL has nothing to do with if there are nodes inside
+		struct uthread_tcb *unblockedThread = NULL;
+		if(BUM)printf("inside if about to dequeue ready thread semQ size : %d\n", queue_length(sem->waitingQ));
 		queue_dequeue(sem->waitingQ, (void **)&unblockedThread);//dequeue the unblocked thread from passed in semaphore
 		uthread_unblock(unblockedThread); //call unblocked on it so it can be put into readyQ
 	}
-	//sem->count++;
+	
     return 0;
 }
