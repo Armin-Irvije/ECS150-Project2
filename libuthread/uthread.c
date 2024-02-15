@@ -77,7 +77,7 @@ struct uthread_tcb *uthread_current(void){
 	if(DEBUG)printf("inside uthread_current\n");
 	while (currentTCB->next != NULL)
 	{
-		if(DEBUG)printf("checking whos running\n");
+		
 		if (currentTCB->state == RUNNING)
 		{
 			if(DEBUG)printf("found running thread return as current\n");
@@ -98,7 +98,7 @@ static void uthread_scheduler(void) {
 
 	if(DEBUG)printf("inside scheduler\n");
 	struct uthread_tcb *next_thread = NULL;
-	struct uthread_tcb *curr = uthread_current();
+	struct uthread_tcb *curr = uthread_current(); //this causes issue when current needs to be set to blocked
 	if(DEBUG)printf("about to dequeue and set next thread\n");
     if (queue_dequeue(readyQ, (void **)&next_thread) != 0) return; // No thread to switch to
 	next_thread->state = RUNNING; 
@@ -154,6 +154,7 @@ int uthread_create(uthread_func_t func, void *arg) //let create be a stand alone
 	newThread->function = func;
 	newThread->arg = arg;
 
+    //keep a global thread is always running
 	add(newThread);//add to linked list
 	queue_enqueue(readyQ, newThread); //add to ready q
 	if(DEBUG)printf("created new thread! queue size: %d\n", queue_length(readyQ));
@@ -205,11 +206,22 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 
 void uthread_block(void)
 {
-	/* TODO Phase 3 */
+	if(DEBUG)printf("inside uthread_block\n");
+	struct uthread_tcb *currentThread = uthread_current();
+	if(currentThread != NULL){
+		//currentThread->state = BLOCKED;
+		if(DEBUG)printf("about to call yield from blocked\n");
+		uthread_yield(); 
+	}
 }
-
+//void uthread_unblock(struct uthread_tcb *uthread)
 void uthread_unblock(struct uthread_tcb *uthread)
 {
-	/* TODO Phase 3 */
+	if(DEBUG)printf("inside uthread_Unblocked\n");
+	if (uthread != NULL) {
+        uthread->state = READY;
+        queue_enqueue(readyQ, uthread);  // Enqueue to ready queue
+		if(DEBUG)printf("queued unblocked thread into ready\n");
+    }
 }
 

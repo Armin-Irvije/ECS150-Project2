@@ -1,31 +1,75 @@
 #include <stddef.h>
 #include <stdlib.h>
-
+#include <stdio.h>
 #include "queue.h"
 #include "sem.h"
 #include "private.h"
+#include "uthread.h"
+
+int BUM= 1;
 
 struct semaphore {
-	/* TODO Phase 3 */
+    int count;
+	queue_t waitingQ;
 };
 
-sem_t sem_create(size_t count)
-{
-	/* TODO Phase 3 */
+sem_t sem_create(size_t count) {
+
+    sem_t semaphore = (sem_t)malloc(sizeof(struct semaphore));
+    if (semaphore == NULL) return NULL;
+    semaphore->count = count;
+	semaphore->waitingQ = queue_create();
+
+	if(BUM)printf("created semaphore\n");
+    return semaphore;
 }
 
-int sem_destroy(sem_t sem)
-{
-	/* TODO Phase 3 */
+int sem_destroy(sem_t sem) {
+    if (sem == NULL) return -1;
+    free(sem);
+    return 0;
 }
 
-int sem_down(sem_t sem)
-{
-	/* TODO Phase 3 */
+
+// When a thread successfully takes the
+// resource, the count is decreased. When the resource is not available,
+// following threads are blocked until the resource becomes available again.
+//enuque (sem->wait , uthread current)
+//check if sem what thread has access to sem 
+//making thread wait and run
+int sem_down(sem_t sem) {
+	if(BUM)printf("inside sem_down\n");
+	struct uthread_tcb *runningThread = uthread_current();
+    if (sem == NULL) return -1;
+	if(sem->count > 0){
+		sem->count--;
+		if(BUM)printf("decresed sem count: %d\n", sem->count);
+	} 
+	
+
+    if(sem->count = 0){//the is the gate at the door if we are 0
+		if(BUM)printf("inside if about to block\n");
+		queue_enqueue(sem->waitingQ, runningThread);
+		if(BUM)printf("enqueued the running thread\n");
+		uthread_block(); //block current running thread
+	}
+	
+    return 0;
 }
 
-int sem_up(sem_t sem)
-{
-	/* TODO Phase 3 */
+// Unblock a waiting thread
+//dequee
+// Implement this based on your threading library
+int sem_up(sem_t sem) {
+	if(BUM)printf("inside sem_up\n");
+	struct uthread_tcb *unblockedThread = NULL;
+    if (sem == NULL) return -1;
+	sem->count++;
+	if(BUM)printf("increased sem count: %d\n", sem->count);
+	if(sem->waitingQ != NULL){
+		queue_dequeue(sem->waitingQ, (void **)&unblockedThread);//dequeue the unblocked thread from passed in semaphore
+		uthread_unblock(unblockedThread); //call unblocked on it so it can be put into readyQ
+	}
+	//sem->count++;
+    return 0;
 }
-

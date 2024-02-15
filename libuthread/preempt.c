@@ -9,6 +9,8 @@
 #include "private.h"
 #include "uthread.h"
 
+//call loops 
+//condition that stops infinite loop happens in thread2
 /*
  * Frequency of preemption
  * 100Hz is 100 times per second
