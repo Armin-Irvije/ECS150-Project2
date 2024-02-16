@@ -5,7 +5,8 @@ CC := gcc
 CFLAGS := -Wall -Wextra -Werror
 
 # Source files
-src := queue.c
+# context.c preempt.c queue.c sem.c uthread.c
+src := queue.c sem.c uthread.c context.c
 obj := $(src:.c=.o)
 
 all: $(lib)
@@ -17,4 +18,4 @@ $(lib): $(obj)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f $(obj) $(lib)
+	rm -f *~ $(obj) $(lib)
