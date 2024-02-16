@@ -1,16 +1,12 @@
 # Uthread Library
 ## Summary
-The project implements a basic user-level thread library. The aims is to 
+The project implements a basic user-level thread library. The aim is to 
 provide a comprehensive interface for threads and synchronization. first part 
-is Queue API, which employs a node-based structure to manage thread scheduling 
-efficiently in a round-robin style. Threads are created and managed through the 
-uthread API, which ensures seamless execution of independent threads. The 
-library offers a Semaphore API for thread synchronization, enabling the 
-coordination of shared resources among concurrent threads. Preemption is 
-achieved through interrupt-based scheduling, allowing threads to be preempted, 
-ensuring fair CPU allocation among threads. By integrating these components, 
-the library offers a comprehensive framework for developing multi-threaded 
-applications.
+is queue API, which employs a node-based structure to manage thread scheduling
+efficiently. Threads are created and managed through the uthread API, which 
+implement the execution of independent threads. The library offers a 
+Semaphore API for thread synchronization, enabling the coordination of shared 
+resources among concurrent threads. 
 
 ## Design
 The design of the program follows a modular approach, with each file `queue.c`,
@@ -41,41 +37,93 @@ robustness of the implementation.
 
 ## uthread
 The uthread.c file implements important functionalities for managing threads 
-within the thread library. It uses some key structures for the thread 
-management, including the uthread_tcb struct and the TCBLL struct. The 
-`uthread_tcb` struct represents a thread control block and includes variables 
-such as next for linking TCBs in a linked list, context for storing the 
-execution context of the thread, state for tracking its state 
-(RUNNING, READY, BLOCKED) and `readyQ` for holding threads that are ready to 
-run. This is good at tracking and management of individual threads within the 
-system. The TCBLL struct is a linked list of TCBs and provides mechanisms for 
-adding and managing threads in the system. With the linked list we can track 
-the current running thread inside `uthread_current()` easily and find the idle 
-thread which is the always the head of the list. This overall helps with 
-dynamic allocation and deallocation of threads as needed.
+within the thread library. The `uthread_tcb` struct represents a thread 
+control block and includes variables such as next for linking TCBs in a 
+linked list, context for storing the execution context of the thread, state for
+tracking its state (RUNNING, READY, BLOCKED) and `readyQ` for holding threads 
+that are ready to run. This is good at tracking and management of individual 
+threads within the system. The TCBLL struct is a linked list of TCBs and provides
+the ability to add and manage threads in the system. With the linked list we 
+can track the current running thread inside `uthread_current()` easily and find
+the idle thread which is the always the head of the list. The linked list also 
+overall helps with dynamic allocation and deallocation of threads as needed.
 
 The `uthread_scheduler()` function serves as the core, responsible for 
 scheduling and switching between threads in the system. When yield is called,
 the scheduler selects the next available thread to run from the ready queue,
 prioritizing threads based whos scheduling policy, in this case 
 priority-based scheduling. The function dequeues the selected thread from 
-the ready queue, marks it as RUNNING, and enqueues the previously executing
-thread back into the ready queue, ensuring fair execution among threads. 
-The scheduler invokes the context switch operation to transition execution
-from the current thread to the selected thread. This design allows for 
-easy customization of scheduling policies and efficient management of concurrent execution.
+the ready queue, set its state as RUNNING, and enqueues the previously 
+executing thread back into the ready queue. The scheduler invokes the context 
+switch operation to transition execution from the current thread to the 
+selected thread. This design allows for easy customization of scheduling 
+policies and efficient management of concurrent execution.
 
-The other functions implemented in `uthread.c`, such as `uthread_exit` and `uthread_block`,
-are used for termination, and blocking. These functions leverage the underlying thread 
-structures and queue operations to ensure proper execution of threads in the system. 
-By having the thread management logic into reusable functions, uthread.c promotes ease of 
-maintenance. lastly, the use of queues helped managed the ready threads which maked 
-scheduling and execution of threads more effcient, enabling use to handle concurrent 
-execution. 
-
-
+The other functions implemented in `uthread.c`, such as `uthread_exit` and 
+`uthread_block`, are used for termination, and blocking. These functions 
+leverage the underlying thread structures and queue operations to ensure proper
+execution of threads in the system. By having the thread management logic into 
+reusable functions, uthread.c promotes ease of maintenance. lastly, the use of 
+queues helped managed the ready threads which maked scheduling and execution of
+threads more effcient, enabling use to handle concurrent execution. 
 
 ## Semaphores
-## Preemption
+The `sem.c` file provides semaphore functionalities within the thread library, 
+which implements synchronization and resource management. The file defines a 
+semaphore struct representing a semaphore object, which includes fields for 
+count, semaphore number, and a waiting queue to hold threads waiting for 
+access to the semaphore. The `sem_create` function allocates memory for a 
+semaphore, initializes its fields, and returns a pointer to the created 
+semaphore. The `sem_down` function is responsible for decrementing the 
+semaphore count and blocking threads by calling `uthread_block()` when the 
+semaphore count reaches zero, making sure there is mutual exclusion and 
+preventing race conditions. The `sem_up` function increments the semaphore 
+count and unblocks waiting threads by calling `uthread_unblock`, allowing them
+to proceed with their execution. 
+
 ## Testing
+`queue_tester.c` offers a comprehensive set of test on the queue 
+implementation, testing crucial capabilites and edge cases to make sure the 
+API is reliable. Through a series of test cases, it examines the creation of 
+queues, enqueueing and dequeueing operations with both simple and multiple 
+elements, handling of empty queues, and creation of custom data types. The 
+tests also cover scenarios such as dequeueing from an empty queue, enqueueing 
+NULL pointers, addressing potential failure points, corner cases and error 
+handling mechanisms. The tester serves as a vital tool for verifying the 
+correctness of the queue implementation, promoting code quality and confidence 
+in its usage within the library. 
+
+The other provided test files also helped vital in validating the functionality 
+and reliability of the Uthread and semaphore implementation. The 
+`uthread_yield.c` demonstrates the correct sequencing of threads creation and 
+yielding, checking that we properly have the parent thread returns before its 
+child threads execute. This test validates the core of our ability to context 
+switch properly. The `sem_simple.c` focuses on synchronization among multiple 
+threads, testing the proper ordering of thread execution using semaphores. It 
+tests the accuracy of the `sem_down`, `sem_up`, `uthread_blocked`, 
+`uthread_unblocked`.Overall, these tests comprehensively assess the essential 
+aspects of the Uthread  and semaphore implementation, providing confidence in 
+its correctness in synchronized multithreading.
+
 ## conclusion
+The Uthread library presents a great solution for user-level thread management 
+and synchronization. The similarities with the POSIX pthread library lie in the 
+fundamental concepts of thread creation, synchronization primitives, and 
+context switching. Key concepts learned from this project include thread 
+management, synchronization mechanisms, and the importance of comprehensive 
+testing. The modular design, and testing demonstrate the library's reliability 
+and ease of use. The queue API, implemented with a node structure, ensures 
+efficient thread scheduling and management, Whereas the uthread API implements 
+the execution of threads with crucial functions like `uthread_create` and 
+`uthread_yield`. The Semaphore API allows for coordination of shared resources 
+among concurrent threads, incorporating mutual exclusion and preventing race 
+conditions. The thorough testing files, including queue_tester.c, 
+uthread_yield.c, and sem_simple.c, validates the reliability of the library's 
+implementations. The Uthread library  is a valuable tool for developers seeking
+ efficient and reliable thread management and synchronization in their projects.
+
+
+
+
+
+
