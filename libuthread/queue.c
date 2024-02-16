@@ -4,10 +4,7 @@
 
 #include "queue.h"
 
-// TODO : add error checking?
-
-// linked list
-struct node
+struct node  //linked list to store the data of each node and allows us to use things like *head and *tail to enqueue and dequeue
 {
 	struct node *next;
 	void *nodeData;
@@ -25,20 +22,21 @@ queue_t queue_create(void)
 	queue_t theQueue = malloc(sizeof(struct queue));
 	if (theQueue == NULL)
 	{
-		return NULL;
+		return NULL;  //error checking: memory allocation failed, returning NULL
 	}
 
-	theQueue->head = NULL;
+	theQueue->head = NULL;  //initializing our linked list and queue_t data stucture 
 	theQueue->tail = NULL;
 	theQueue->size = 0;
 
-	return theQueue;
+	return theQueue;  //if succesful creation, returns a fully intialized queue data structure
 }
 
 int queue_destroy(queue_t queue)
 {
-	if (queue == NULL){
-		return -1;
+	if (queue == NULL)
+	{
+		return -1;  //error checking: if trying to destry a NULL data structure return -1
 	}
 
 	while (queue->head != NULL)
@@ -55,59 +53,66 @@ int queue_destroy(queue_t queue)
 
 int queue_enqueue(queue_t queue, void *data)
 {
-	if (queue == NULL || data == NULL)
+	if (queue == NULL || data == NULL)  //error checking: if the queue data structure or enqueue data is NULL, returns -1
 		return -1;
 
 	// Create the node
-	struct node *newNode = malloc(sizeof(struct node));
+	struct node *newNode = malloc(sizeof(struct node));  //allocates memory for new node in linked list
 	if (newNode == NULL)
-		return -1;
+		return -1;  //error checking: if node memory allocation fails return -1
 
-	newNode->nodeData = data; // data from the
-	newNode->next = NULL;
+	newNode->nodeData = data; // stores the provided input data into a new node data structure
+	newNode->next = NULL;  //  points to the next node in the linked list and sets it equal to NULL
 
-	if(queue->tail != NULL){
+	if (queue->tail != NULL)  //  if not the first node, set the next node from the tail equal to the new node above 
+	{
 		queue->tail->next = newNode;
-		queue->tail = newNode;
+		queue->tail = newNode;  //set the tail equal to the current new node
 	}
-	else{
-		//first node in the queue
-		queue->head = newNode;
+	else
+	{
+		// first node in the queue, set it to both the head and the tail of the linked list because it is the only node in it
+		queue->head = newNode;  
 		queue->tail = newNode;
 	}
 
-	queue->size++;
+	queue->size++;  
 
 	return 0;
 }
 
 int queue_dequeue(queue_t queue, void **data)
 {
-	if (data == NULL || queue->head == NULL || queue == NULL  )
-	{
-		return -1;
-	}
+    if (queue == NULL || data == NULL) {
+        return -1; //  error checking: invalid queue or data pointer
+    }
 
-	struct node *tempNode = queue->head; //dequeue only happens at the head
-	*data = tempNode->nodeData;
+    if (queue->head == NULL) {
+        *data = NULL; // set data to NULL if the queue is empty
+        return -1;    // error checking: indicate failure
+    }
 
-	queue->head = queue->head->next; //set NEW head 
-	free(tempNode);
+    struct node *tempNode = queue->head; // dequeue only happens at the head
+    *data = tempNode->nodeData;
 
-	if (queue->head == NULL) //if NEW head is null then our tail is null and we have an empty queue
-	{
-		queue->tail = NULL;
-	}
+    queue->head = queue->head->next; // set NEW head
+    free(tempNode);
 
-	queue->size--; 
-	return 0;
+    if (queue->head == NULL) // if NEW head is null then our tail is null and we have an empty queue
+    {
+        queue->tail = NULL;
+    }
+
+    queue->size--;
+    return 0;
 }
+
 
 int queue_delete(queue_t queue, void *data) // not constant runtime
 {
 	if (queue == NULL || data == NULL)
 	{
-		return -1;
+		return -1;  //error checking: trying to delete data form a NULL queue or trying to delete NULL data or both
 	}
 
 	struct node *currentNode = queue->head;
@@ -121,10 +126,10 @@ int queue_delete(queue_t queue, void *data) // not constant runtime
 		{
 			if (prevNode == NULL)
 			{
-				// if head is to be deleted set next as new head 
+				// if head is to be deleted set next as new head
 				queue->head = currentNode->next;
 
-				if (queue->head == NULL) //if that NEW head is NUll then set our tail to null as well because it was only 1 node in the queue
+				if (queue->head == NULL) // if that NEW head is NUll then set our tail to null as well because it was only 1 node in the queue
 				{
 					queue->tail = NULL;
 				}
@@ -133,7 +138,8 @@ int queue_delete(queue_t queue, void *data) // not constant runtime
 			{
 				prevNode->next = currentNode->next;
 				// set prev node next to current node next so we don't lose data
-				if (prevNode->next == NULL){ //Check if our NEW prevNode is the tail or not 
+				if (prevNode->next == NULL)
+				{ // Check if our NEW prevNode is the tail or not
 					queue->tail = prevNode;
 				}
 			}

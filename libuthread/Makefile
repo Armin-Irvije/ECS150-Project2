@@ -1,4 +1,4 @@
-# Target library
+# library
 lib := libuthread.a
 
 CC := gcc
