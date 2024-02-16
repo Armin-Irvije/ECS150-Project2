@@ -1,7 +1,7 @@
 # Uthread Library
 ## Summary
-The project implements a basic user-level thread library. The aim is to 
-provide a comprehensive interface for threads and synchronization. first part 
+The project implements a basic user-level thread library. The aim is to  
+provide a comprehensive interface for threads and synchronization. First part 
 is queue API, which employs a node-based structure to manage thread scheduling
 efficiently. Threads are created and managed through the uthread API, which 
 implements the execution of independent threads. The library offers a 
@@ -14,7 +14,7 @@ The design of the program follows a modular approach, with each file `queue.c`,
 management and synchronization. This design allows for clear separation and 
 promotes good code organization. Each file exposes a set of functions through 
 its corresponding header file enabling other parts of the library to utilize 
-these APIs. The `private.h` header file contains declarations and definitions 
+these APIs. The `private.h` header file contains definitions 
 that are internal to the library and not meant for the users, enforcing 
 abstraction. The `Makefile` makes use of a build automation tool, allowing for 
 compilation and maintenance of the library. This design promotes code and 
@@ -36,17 +36,17 @@ useful for traversal and filtering. The two functions boost the overall
 robustness of the implementation.
 
 ## uthread
-The uthread.c file implements important functionalities for managing threads 
+The uthread.c file implements important functionalities for managing threads   
 within the thread library. The `uthread_tcb` struct represents a thread 
 control block and includes variables such as next for linking TCBs in a 
 linked list, context for storing the execution context of the thread, state for
-tracking its state (RUNNING, READY, BLOCKED) and global ready queue for holding 
-threads that are ready to run. This is good at tracking and management of individual 
-threads within the system. The TCBLL struct is a linked list of TCBs and provides
-the ability to add and manage threads in the system. With the linked list we 
-can track the current running thread inside `uthread_current()` easily and find
-the idle thread which is the always the head of the list. The linked list also 
-overall helps with dynamic allocation and deallocation of threads as needed.
+tracking its state (RUNNING, READY, BLOCKED) This is good at tracking and 
+management of individual threads within the system. The TCBLL struct is a 
+linked list of TCBs and provides the ability to add and manage threads in the 
+system. With the linked list we can track the current running thread inside 
+`uthread_current()` easily and find the idle thread which is the always the 
+head of the list. The linked list also overall helps with dynamic allocation 
+and deallocation of threads as needed.
 
 The `uthread_scheduler()` function serves as the core, responsible for 
 scheduling and switching between threads in the system. When yield is called,
@@ -55,8 +55,7 @@ prioritizing threads based on scheduling policy, in this case FIFO policy. The
 function dequeues the selected thread from the ready queue, set its state as 
 RUNNING, and enqueues the previously executing thread back into the ready 
 queue. The scheduler invokes the context switch operation to transition 
-execution from the current thread to the selected thread. This design allows 
-for efficient management of concurrent execution.
+execution from the current thread to the selected thread.
 
 The other functions implemented in `uthread.c`, such as `uthread_exit` and 
 `uthread_block`, are used for termination, and blocking. These functions 
@@ -87,8 +86,8 @@ elements, handling of empty queues, and creation of custom data types. The
 tests also cover scenarios such as dequeueing from an empty queue, enqueueing 
 NULL pointers, addressing potential failure points, corner cases and error 
 handling mechanisms. The tester serves as a vital tool for verifying the 
-correctness of the queue implementation, promoting code quality and confidence 
-in its usage in the library. 
+correctness of the queue implementation, promoting confidence in its usage in 
+the library. 
 
 The other provided test files also helped in validating the functionality 
 and reliability of the uthread and semaphore implementation. The 
