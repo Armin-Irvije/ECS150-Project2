@@ -1,8 +1,9 @@
-# Target programs
+# programs we actually pass, add here
 programs := \
 	queue_tester.x \
 	uthread_hello.x \
-	uthread_yield.x
+	uthread_yield.x \
+	sem_simple.x
 
 # User-level thread library
 UTHREADLIB := libuthread

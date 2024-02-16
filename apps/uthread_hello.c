@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <sem.h>
 #include <uthread.h>
 
 void hello(void *arg)

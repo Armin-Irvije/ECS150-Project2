@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h> 
 
-#include "queue.h"
-//#include <queue.h>
+
+#include <queue.h>
 
 //this one is graded!!
 #define TEST_ASSERT(assert)				\
@@ -38,7 +38,7 @@ void test_queue_simple(void)
 	TEST_ASSERT(p == &d); //tests if we can store one piece of data into a queue and then read it out of the queue
 }
 
-void test_dequeue_empty(void)
+void dequeue_empty(void)
 {
     queue_t q;
     int *p;
@@ -50,7 +50,7 @@ void test_dequeue_empty(void)
     TEST_ASSERT(queue_dequeue(q, (void**)&p) == -1); //tests that ensures that if we try to dequeue from an empty queue we recieve a -1 return value
 }
 
-void test_queue_multiple(void)
+void queue_multiple(void)
 {
 	int d1 = 1;
 	int d2 = 2;
@@ -82,7 +82,7 @@ typedef struct {
 
 }fastfood_t;
 
-void test_custom_data_types(void)
+void custom_data_types(void)
 {
     fastfood_t order1 = {1, "fries"};
 	fastfood_t order2 = {2, "shake"};
@@ -105,7 +105,7 @@ void test_custom_data_types(void)
     TEST_ASSERT(p->orderid == 3 && strcmp(p->meal, "burger") == 0); //tests the queues ability enqueue and dequeue data structures
 }
 
-void test_enqueue_null(void)
+void enqueue_null(void)
 {
     queue_t q;
 
@@ -116,7 +116,7 @@ void test_enqueue_null(void)
     TEST_ASSERT(queue_enqueue(q, NULL) == -1); //tests that if we try to enqueue NULL into the queue we return -1
 }
 
-void test_dequeue_null(void)
+void dequeue_null(void)
 {
     int *ptr;
 
@@ -129,11 +129,11 @@ int main(void)
 {
 	test_create();
     test_queue_simple();
-	test_dequeue_empty();
-    test_queue_multiple();
-    test_custom_data_types();
-    test_enqueue_null();
-    test_dequeue_null();
+	dequeue_empty();
+	queue_multiple();
+    custom_data_types();
+    enqueue_null();
+    dequeue_null();
 	
 	return 0;
 }

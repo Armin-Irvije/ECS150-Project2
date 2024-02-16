@@ -10,12 +10,12 @@ src := queue.c sem.c uthread.c context.c
 obj := $(src:.c=.o)
 
 all: $(lib)
-
+#puts the object files into the library
 $(lib): $(obj)
-	ar rcs $@ $^
+	ar rcs $@ $^ 
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
-
+#clean all object files
 clean:
 	rm -f *~ $(obj) $(lib)
