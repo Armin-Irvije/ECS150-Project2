@@ -78,16 +78,16 @@ count and unblocks waiting threads by calling `uthread_unblock`, allowing them
 to proceed with their execution.   
 
 ## Testing
-`queue_tester.c` offers a comprehensive set of test on the queue 
-implementation, testing crucial capabilites and edge cases to make sure the 
-API is reliable. Through a series of test cases, it examines the creation of 
-queues, enqueueing and dequeueing operations with both simple and multiple 
-elements, handling of empty queues, and creation of custom data types. The 
-tests also cover scenarios such as dequeueing from an empty queue, enqueueing 
-NULL pointers, addressing potential failure points, corner cases and error 
-handling mechanisms. The tester serves as a vital tool for verifying the 
-correctness of the queue implementation, promoting confidence in its usage in 
-the library. 
+`queue_tester.c` offers a comprehensive set of test on the queue    
+implementation, testing crucial capabilites and edge cases to make sure the   
+API is reliable. Through a series of test cases, it examines the creation of   
+queues, enqueueing and dequeueing operations with both simple and multiple   
+elements, handling of empty queues, and creation of custom data types. The   
+tests also cover scenarios such as dequeueing from an empty queue, enqueueing   
+NULL pointers, addressing potential failure points, corner cases and error   
+handling mechanisms. The tester serves as a vital tool for verifying the   
+correctness of the queue implementation, promoting confidence in its usage in   
+the library.   
 
 The other provided test files also helped in validating the functionality   
 and reliability of the uthread and semaphore implementation. The   
@@ -102,32 +102,32 @@ aspects of the Uthread  and semaphore implementation, providing confidence in
 its correctness in synchronized multithreading.  
 
 ## Struggles 
-We encountered numerous logic flaws that impacted our ability to pass critical 
-test cases like `uthread_yield` and `sem_simple.c`. Our struggles were centered 
-around our fundamental uncertainties surrounding the behavior of our uthread 
-logic. Despite our best efforts, we found it challenging to figure out the 
-precise handling of scenarios such as thread exits and the integration of the 
-idle thread into the ready queue. As result we were unable to create our 
-preemptive API in time. Our approach would have been to seamlessly interrupt 
-running threads at predefined intervals, ensuring fair scheduling. This would 
-involve `preempt_disable()` and `preempt_enable()` functions to respectively 
-halt and resume preemption, along with `preempt_start()` and `preempt_stop()` 
-to begin and conclude preemption.  
+We encountered numerous logic flaws that impacted our ability to pass critical   
+test cases like `uthread_yield` and `sem_simple.c`. Our struggles were centered   
+around our fundamental uncertainties surrounding the behavior of our uthread   
+logic. Despite our best efforts, we found it challenging to figure out the   
+precise handling of scenarios such as thread exits and the integration of the   
+idle thread into the ready queue. As result we were unable to create our   
+preemptive API in time. Our approach would have been to seamlessly interrupt   
+running threads at predefined intervals, ensuring fair scheduling. This would   
+involve `preempt_disable()` and `preempt_enable()` functions to respectively   
+halt and resume preemption, along with `preempt_start()` and `preempt_stop()`   
+to begin and conclude preemption.    
 
 ## Conclusion
-The Uthread library presents a good solution for user-level thread management   
-and synchronization. The similarities with the POSIX pthread library lie in the   
-fundamental concepts of thread creation, synchronization primitives, and   
-context switching. Key concepts learned from this project include thread   
-management, synchronization mechanisms, and the importance of comprehensive 
-testing. The modular design, and testing demonstrate the library's reliability. 
-The queue API, implemented with a node structure, ensures efficient thread 
-scheduling and management, Whereas the uthread API implements the execution of 
-threads with crucial functions like `uthread_create` and `uthread_yield`. The 
-Semaphore API allows for coordination of shared resources among concurrent 
-threads, incorporating mutual exclusion. The thorough testing files, validates 
-the reliability of the library's implementations. Further addrressing the 
-challenges encountered we could evetually add preemption which would enhance 
-the library's capabilities, providing more responsiveness in execution 
-scenarios. The Uthread library is a valuable tool for developers seeking 
-efficient and reliable thread management and synchronization in their projects.
+The Uthread library presents a good solution for user-level thread management     
+and synchronization. The similarities with the POSIX pthread library lie in the     
+fundamental concepts of thread creation, synchronization primitives, and     
+context switching. Key concepts learned from this project include thread         
+management, synchronization mechanisms, and the importance of comprehensive   
+testing. The modular design, and testing demonstrate the library's reliability.   
+The queue API, implemented with a node structure, ensures efficient thread   
+scheduling and management, Whereas the uthread API implements the execution of   
+threads with crucial functions like `uthread_create` and `uthread_yield`. The   
+Semaphore API allows for coordination of shared resources among concurrent    
+threads, incorporating mutual exclusion. The thorough testing files, validates   
+the reliability of the library's implementations. Further addrressing the   
+challenges encountered we could evetually add preemption which would enhance   
+the library's capabilities, providing more responsiveness in execution   
+scenarios. The Uthread library is a valuable tool for developers seeking   
+efficient and reliable thread management and synchronization in their projects.  
